@@ -8,6 +8,9 @@ const {
   validarSenha,
   validarNome,
   validarIdade,
+  validarTalkWatched,
+  validarTalkRate,
+  validarTalk,
 } = require('./middlewares/index.js');
 
 const app = express();
@@ -35,15 +38,19 @@ const validarToken = (request, response, next) => {
   next();
 };
 
-app.get('/talker', async (request, response) => {
+const readFile = async () => {
   const allTalkers = await fs.readFile('./talker.json', 'utf-8');
   const talkers = JSON.parse(allTalkers);
+  return talkers;
+};
+
+app.get('/talker', async (request, response) => {
+  const talkers = await readFile();
   response.status(200).send(talkers);
 });
 
 app.get('/talker/:id', async (request, response) => {
-  const allTalkers = await fs.readFile('./talker.json', 'utf-8');
-  const talkers = JSON.parse(allTalkers);
+  const talkers = await readFile();
   const { id } = request.params;
   const talker = talkers.find((t) => t.id === +id);
 
@@ -57,8 +64,34 @@ app.post('/login', validarEmail, validarSenha, (request, response) => {
   response.status(200).json({ token });
 });
 
-app.post('/talker', validarToken, validarNome, validarIdade, (_request, _response) => {
-  console.log('teste');
+app.post('/talker',
+  validarToken, validarNome, validarIdade, validarTalkWatched, validarTalkRate, validarTalk,
+  async (request, response) => {
+    try {
+      const { name, age, talk } = request.body;
+      const talker = {
+        id: 0,
+        name,
+        age,
+        talk,
+      };
+      const talkers = await readFile();
+      talkers.push(talker);
+      await fs.writeFile('./talker.json', 'utf-8');
+      return response.status(200).json({ talker });
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+app.delete('/talker/:id', validarToken, async (request, response) => {
+  const { id } = request.params;
+  const talkers = await readFile();
+
+  const talkersFiltered = talkers.filter((t) => t.id !== id);
+  talkers.push(talkersFiltered);
+  await fs.writeFile('./talker.json');
+  return response.status(204).end();
 });
 
 app.listen(PORT, () => {
