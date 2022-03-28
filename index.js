@@ -44,6 +44,10 @@ const readFile = async () => {
   return talkers;
 };
 
+const writeFile = async (contentJson) => {
+  await fs.writeFile('./talker.json', JSON.stringify(contentJson));
+};
+
 app.get('/talker', async (request, response) => {
   const talkers = await readFile();
   response.status(200).send(talkers);
@@ -65,34 +69,36 @@ app.post('/login', validarEmail, validarSenha, (request, response) => {
 });
 
 app.post('/talker',
-  validarToken, validarNome, validarIdade, validarTalkWatched, validarTalkRate, validarTalk,
+  validarToken, validarNome, validarIdade, validarTalk, validarTalkWatched, validarTalkRate,
   async (request, response) => {
     try {
-      const { name, age, talk } = request.body;
-      const talker = {
-        id: 0,
+      const { name, age, talk: { watchedAt, rate } } = request.body;
+      const newTalker = {
         name,
         age,
-        talk,
+        talk: {
+          watchedAt,
+          rate,
+        },
       };
       const talkers = await readFile();
-      talkers.push(talker);
-      await fs.writeFile('./talker.json', 'utf-8');
-      return response.status(200).json({ talker });
+      talkers.push(newTalker);
+      await writeFile(talkers);
+      return response.status(201).json({ newTalker });
     } catch (err) {
         console.log(err);
     }
 });
 
-app.delete('/talker/:id', validarToken, async (request, response) => {
-  const { id } = request.params;
-  const talkers = await readFile();
+// app.delete('/talker/:id', validarToken, async (request, response) => {
+//   const { id } = request.params;
+//   const talkers = await readFile();
 
-  const talkersFiltered = talkers.filter((t) => t.id !== id);
-  talkers.push(talkersFiltered);
-  await fs.writeFile('./talker.json');
-  return response.status(204).end();
-});
+//   const talkersFiltered = talkers.filter((t) => t.id !== id);
+//   talkers.push(talkersFiltered);
+//   await fs.writeFile('./talker.json');
+//   return response.status(204).end();
+// });
 
 app.listen(PORT, () => {
   console.log('Online');

@@ -2,7 +2,7 @@ function validarNome(request, response, next) {
   const { name } = request.body;
 
   if (!name) {
-    return response.status(400).json({ message: 'O campo "name" é obigatório' });
+    return response.status(400).json({ message: 'O campo "name" é obrigatório' });
   }
 
   if (name.length < 3) {
