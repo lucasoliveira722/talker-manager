@@ -6,10 +6,12 @@ const validarEmail = (request, response, next) => {
     return response.status(400).json({ message: 'O campo "email" é obrigatório' });
   }
 
-  if (!email.match(mailformat)) {
-    return response.status(400).json({ message: 'O "email" deve ter o formato "email@email.com' });
+  if (email.match(mailformat)) {
+    next();
+  } else {
+    return response.status(400)
+    .json({ message: 'O "email" deve ter o formato "email@email.com"' });
   }
-
   next();
 };
 

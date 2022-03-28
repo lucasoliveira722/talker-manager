@@ -1,5 +1,5 @@
 const validarSenha = (request, response, next) => {
-  const password = request.body;
+  const { password } = request.body;
 
   if (!password) {
     return response.status(400).json({ message: 'O campo "password" é obrigatório' });
