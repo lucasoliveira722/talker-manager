@@ -42,9 +42,9 @@ app.get('/talker', async (request, response) => {
 
 // Requisito 7
 app.get('/talker/search', validarToken, async (request, response) => {
-  const { searchTerm } = request.query;
+  const { q } = request.query;
   const talkers = await readFile();
-  const filteredTalkers = talkers.filter((t) => t.name.includes(searchTerm));
+  const filteredTalkers = talkers.filter((t) => t.name.includes(q));
   if (!filteredTalkers || filteredTalkers === '') {
     response.status(200).send(talkers);
   }
@@ -92,10 +92,9 @@ app.post('/talker',
 app.delete('/talker/:id', validarToken, async (request, response) => {
   const { id } = request.params;
   const talkers = await readFile();
-
-  const talkersFiltered = talkers.filter((t) => t.id !== id);
-  talkers.push(talkersFiltered);
-  await fs.writeFile('./talker.json');
+  const talkersFiltered = talkers.filter((t) => t.id !== +id);
+  // talkers.push(talkersFiltered);
+  await fs.writeFile('./talker.json', JSON.stringify(talkersFiltered));
   return response.status(204).end();
 });
 
