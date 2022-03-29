@@ -11,6 +11,7 @@ const {
   validarTalkWatched,
   validarTalkRate,
   validarTalk,
+  validarToken,
 } = require('./middlewares/index.js');
 
 const app = express();
@@ -24,19 +25,19 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-const validarToken = (request, response, next) => {
-  const { authorization } = request.headers;
+// const validarToken = (request, response, next) => {
+//   const { authorization } = request.headers;
 
-  if (!authorization) {
-    return response.status(401).json({ message: 'Token não encontrado' });
-  }
+//   if (!authorization) {
+//     return response.status(401).json({ message: 'Token não encontrado' });
+//   }
 
-  if (authorization.length !== 16) {
-    return response.status(401).json({ message: 'Token inválido' });
-  }
+//   if (authorization.length !== 16) {
+//     return response.status(401).json({ message: 'Token inválido' });
+//   }
 
-  next();
-};
+//   next();
+// };
 
 const readFile = async () => {
   const allTalkers = await fs.readFile('./talker.json', 'utf-8');
@@ -45,12 +46,23 @@ const readFile = async () => {
 };
 
 const writeFile = async (contentJson) => {
-  await fs.writeFile('./talker.json', JSON.stringify(contentJson));
+  await fs.writeFile('talker.json', JSON.stringify(contentJson));
 };
 
 app.get('/talker', async (request, response) => {
   const talkers = await readFile();
   response.status(200).send(talkers);
+});
+
+// Requisito 7
+app.get('/talker/search', validarToken, async (request, response) => {
+  const { searchTerm } = request.query;
+  const talkers = await readFile();
+  const filteredTalkers = talkers.filter((t) => t.name.includes(searchTerm));
+  if (!filteredTalkers || filteredTalkers === '') {
+    response.status(200).send(talkers);
+  }
+  response.status(200).json(filteredTalkers);
 });
 
 app.get('/talker/:id', async (request, response) => {
@@ -72,16 +84,17 @@ app.post('/talker',
   validarToken, validarNome, validarIdade, validarTalk, validarTalkWatched, validarTalkRate,
   async (request, response) => {
     try {
+      const talkers = await readFile();
       const { name, age, talk: { watchedAt, rate } } = request.body;
       const newTalker = {
         name,
         age,
+        id: talkers.length + 1,
         talk: {
           watchedAt,
           rate,
         },
       };
-      const talkers = await readFile();
       talkers.push(newTalker);
       await writeFile(talkers);
       return response.status(201).json({ newTalker });
@@ -90,15 +103,15 @@ app.post('/talker',
     }
 });
 
-// app.delete('/talker/:id', validarToken, async (request, response) => {
-//   const { id } = request.params;
-//   const talkers = await readFile();
+app.delete('/talker/:id', validarToken, async (request, response) => {
+  const { id } = request.params;
+  const talkers = await readFile();
 
-//   const talkersFiltered = talkers.filter((t) => t.id !== id);
-//   talkers.push(talkersFiltered);
-//   await fs.writeFile('./talker.json');
-//   return response.status(204).end();
-// });
+  const talkersFiltered = talkers.filter((t) => t.id !== id);
+  talkers.push(talkersFiltered);
+  await fs.writeFile('./talker.json');
+  return response.status(204).end();
+});
 
 app.listen(PORT, () => {
   console.log('Online');

@@ -2,6 +2,7 @@ const validarEmail = require('./validarEmail');
 const validarSenha = require('./validarSenha');
 const validarNome = require('./validarNome');
 const validarIdade = require('./validarIdade');
+const validarToken = require('./validarToken');
 const {
   validarTalkWatched,
   validarTalkRate,
@@ -16,4 +17,5 @@ module.exports = {
   validarTalkWatched,
   validarTalkRate,
   validarTalk,
+  validarToken,
 };
