@@ -25,20 +25,6 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-// const validarToken = (request, response, next) => {
-//   const { authorization } = request.headers;
-
-//   if (!authorization) {
-//     return response.status(401).json({ message: 'Token não encontrado' });
-//   }
-
-//   if (authorization.length !== 16) {
-//     return response.status(401).json({ message: 'Token inválido' });
-//   }
-
-//   next();
-// };
-
 const readFile = async () => {
   const allTalkers = await fs.readFile('./talker.json', 'utf-8');
   const talkers = JSON.parse(allTalkers);
@@ -97,7 +83,7 @@ app.post('/talker',
       };
       talkers.push(newTalker);
       await writeFile(talkers);
-      return response.status(201).json({ newTalker });
+      return response.status(201).send(newTalker);
     } catch (err) {
         console.log(err);
     }
